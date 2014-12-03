@@ -1,0 +1,33 @@
+{{define "add"}}
+{{template "header"}}
+
+<h1>Admin</h1>
+
+<form name="google-search" method="POST" action="/{{ .Admin }}/add">
+<div class="row collapse">
+    <div class="small-3 large-2 columns">
+      <span class="prefix">Title</span>
+    </div>
+    <div class="small-9 large-10 columns">
+      <input type="text" name="title" placeholder="My First Post">
+    </div>
+</div>
+<div class="row collapse">
+    <div class="small-3 large-2 columns">
+      <span class="prefix">Author</span>
+    </div>
+    <div class="small-9 large-10 columns">
+      <input type="text" name="author" placeholder="Miles Davis">
+    </div>
+</div>
+<div class="row collapse">
+    <div class="large-12 columns">
+        <textarea id="post" name="post" rows= "20"></textarea>
+    </div>
+  </div>
+<input class="button small large-12" type="submit" value="Send Message" />
+</form>
+
+
+{{template "footer"}}
+{{end}}

@@ -1,0 +1,29 @@
+{{define "footer"}}
+This from footer 
+    <script src="../../static/js/vendor/jquery.js"></script>
+    <script src="../../static/js/foundation.min.js"></script>
+    <script>
+      $(document).foundation();
+    </script>
+    <script src="../../static/froala/js/froala_editor.min.js"></script>
+<script>
+  $(function() {
+    $('#post')
+      .editable({
+        inlineMode: false,
+        // Set the image upload parameter.
+        imageUploadParam: 'post',
+
+        // Set the image upload URL.
+        imageUploadURL: '/{{ Admin }}/uploadimage',
+
+        // Additional upload params.
+        imageUploadParams: {id: 'my_editor'}
+      })
+  });
+</script>
+  </body>
+</html>
+
+
+{{end}}

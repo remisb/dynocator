@@ -1,0 +1,14 @@
+{{define "index"}}
+{{template "header"}}
+
+{{ range .Posts }}
+<h1><a href="{{ .Permalink }}">{{ .Title }}</a></h1>
+Written by {{ .Author }} on {{ .Date}}
+<p>
+	{{ .Summary }}
+</p>
+{{ end}}
+
+  
+{{template "footer"}}
+{{end}}

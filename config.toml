@@ -1,0 +1,7 @@
+baseurl="http://localhost"
+title="My Beautiful Site"
+templates="templates"
+posts="posts"
+public="public"
+admin="admin"
+metadata="metadata"
