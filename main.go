@@ -36,8 +36,10 @@ func main() {
 	log.Printf("Server running on %s", ("http://localhost" + flags.Port))
 	log.Printf("Press ctrl+c to stop")
 
-	http.Handle("/", r)
+	// Start file-change watcher for posts/
 	go ConvertWatcher()
+
+	http.Handle("/", r)
 	http.ListenAndServe(flags.Port, nil)
 }
 
@@ -133,6 +135,7 @@ type Config struct {
 	Public    string
 	Admin     string
 	Metadata  string
+	Index     string
 }
 
 // Reads info from config file
@@ -147,7 +150,7 @@ func ReadConfig() Config {
 	if _, err := toml.DecodeFile(configfile, &config); err != nil {
 		log.Fatal(err)
 	}
-
+	log.Print(config.Index)
 	return config
 }
 
@@ -262,23 +265,18 @@ func ConvertWatcher() {
 				case event.Op == fsnotify.Create:
 					log.Println("created file:", event.Name)
 					ConvertAllPosts()
-
 				case event.Op == fsnotify.Write:
 					log.Println("wrote file:", event.Name)
 					ConvertAllPosts()
-
 				case event.Op == fsnotify.Chmod:
 					log.Println("chmod file:", event.Name)
 					ConvertAllPosts()
-
 				case event.Op == fsnotify.Rename:
 					log.Println("renamed file:", event.Name)
 					ConvertAllPosts()
-
 				case event.Op == fsnotify.Remove:
 					log.Println("removed file:", event.Name)
 					ConvertAllPosts()
-
 				}
 
 			case err := <-watcher.Errors:
