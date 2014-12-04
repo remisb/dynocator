@@ -21,6 +21,7 @@ var flags = ReadFlags()
 var config = ReadConfig()
 
 func init() {
+	log.Print(config.Baseurl)
 	ConvertAllPosts()
 }
 
@@ -29,7 +30,7 @@ func main() {
 	r.HandleFunc("/"+config.Admin, AdminIndex).Methods("GET")
 	r.HandleFunc("/"+config.Admin+"/add", AddGet).Methods("GET")
 	r.HandleFunc("/"+config.Admin+"/add", AddPost).Methods("POST")
-	//r.HandleFunc("/"+config.Admin+"/edit/{post}", EditPost).Methods("GET")
+	r.HandleFunc("/"+config.Admin+"/edit/{post}", EditPost).Methods("GET")
 	r.HandleFunc("/"+config.Admin+"/uploadimage", UploadImage).Methods("POST")
 	r.PathPrefix("/").Handler(http.FileServer(http.Dir(config.Public)))
 
@@ -62,6 +63,21 @@ func AddGet(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func EditPost(w http.ResponseWriter, r *http.Request) {
+
+	vars := mux.Vars(r)
+	post := vars["post"]
+	y := config.Posts + "/" + post + ".html"
+	data, _ := ioutil.ReadFile(y)
+	x := string(data)
+
+	metadata := ReadMetaData(y)
+
+	tmpl := template.Must(template.New("edit").Funcs(funcMap).ParseGlob(config.Admin + "/*.html"))
+	tmpl.Execute(w, map[string]interface{}{"Post": x, "Admin": config.Admin, "Metadata": &metadata})
+
+}
+
 func AddPost(w http.ResponseWriter, r *http.Request) {
 
 	// Slugify the title
@@ -88,7 +104,7 @@ func AddPost(w http.ResponseWriter, r *http.Request) {
 	f2.WriteString("slug = " + "\"" + titleslug + "\"\n")
 
 	// Redirect to admin page
-	http.Redirect(w, r, "/admin", 301)
+	http.Redirect(w, r, ("/admin/edit/" + titleslug), 301)
 
 }
 
@@ -109,8 +125,8 @@ func UploadImage(w http.ResponseWriter, r *http.Request) {
 	io.Copy(f, file)
 
 	//log.Print(handler.Filename)
-	filename2 := "/static/postimages/" + handler.Filename
-	m := map[string]string{"link": ".." + filename2}
+	filename2 := config.Baseurl + "/static/postimages/" + handler.Filename
+	m := map[string]string{"link": filename2}
 	m2, _ := json.Marshal(m)
 	//log.Println(m2)
 

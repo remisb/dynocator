@@ -1,17 +1,17 @@
 {{define "edit"}}
 {{template "header"}}
 
-<h1>Admin</h1>
+<h1>Admin Edit Post</h1>
 
 
 
-<form name="google-search" method="get" action="http://www.google.com/search">
+<form name="google-search" method="POST" action="/{{ .Admin }}/add">
 <div class="row collapse">
     <div class="small-3 large-2 columns">
       <span class="prefix">Title</span>
     </div>
     <div class="small-9 large-10 columns">
-      <input type="text" value="{{ .Title }}">
+      <input type="text" name="title" value="{{ .Metadata.Title }}">
     </div>
 </div>
 <div class="row collapse">
@@ -19,23 +19,16 @@
       <span class="prefix">Author</span>
     </div>
     <div class="small-9 large-10 columns">
-      <input type="text" value="{{ .Author }}">
+      <input type="text" name="author" value="{{ .Metadata.Author }}">
     </div>
 </div>
-<div class="row collapse">
-    <div class="small-3 large-2 columns">
-      <span class="prefix">Date</span>
-    </div>
-    <div class="small-9 large-10 columns">
-      <input type="datetime" value="{{ .Date }}">
-    </div>
-</div>
+
 <div class="row collapse">
     <div class="large-12 columns">
         <textarea id="post" rows= "20">{{ .Post }}</textarea>
     </div>
   </div>
-
+<input class="button small large-12" type="submit" value="Send Message" />
 </form>
 
 

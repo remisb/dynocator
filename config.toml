@@ -1,4 +1,4 @@
-baseurl="http://localhost"
+baseurl="http://localhost:1414"
 title="My Beautiful Site"
 templates="templates"
 posts="posts"
