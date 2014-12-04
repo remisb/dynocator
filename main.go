@@ -5,6 +5,7 @@ import (
 	"flag"
 	"github.com/BurntSushi/toml"
 	"github.com/gorilla/mux"
+	"gopkg.in/fsnotify.v1"
 	"html/template"
 	"io"
 	"io/ioutil"
@@ -28,6 +29,7 @@ func main() {
 	r.HandleFunc("/"+config.Admin, AdminIndex).Methods("GET")
 	r.HandleFunc("/"+config.Admin+"/add", AddGet).Methods("GET")
 	r.HandleFunc("/"+config.Admin+"/add", AddPost).Methods("POST")
+	//r.HandleFunc("/"+config.Admin+"/edit/{post}", EditPost).Methods("GET")
 	r.HandleFunc("/"+config.Admin+"/uploadimage", UploadImage).Methods("POST")
 	r.PathPrefix("/").Handler(http.FileServer(http.Dir(config.Public)))
 
@@ -35,6 +37,7 @@ func main() {
 	log.Printf("Press ctrl+c to stop")
 
 	http.Handle("/", r)
+	go ConvertWatcher()
 	http.ListenAndServe(flags.Port, nil)
 }
 
@@ -213,8 +216,11 @@ func ConvertPost(v string) {
 	}
 	defer r.Close()
 
+	tmpl := template.Must(template.New("header").Funcs(funcMap).ParseGlob(config.Templates + "/*.html"))
+	tmpl.Execute(r, map[string]interface{}{"Title": metadata.Title})
+
 	tmpl2 := template.Must(template.New("single").Funcs(funcMap).ParseGlob(config.Templates + "/*.html"))
-	tmpl2.Execute(r, map[string]interface{}{"Meta": &metadata, "Content": template.HTML(x)})
+	tmpl2.Execute(r, map[string]interface{}{"Meta": &metadata, "Content": template.HTML(x), "Title": metadata.Title})
 
 }
 
@@ -236,4 +242,54 @@ func ReadMetaData(v string) Metadata {
 	}
 
 	return metadata
+}
+
+// Watches posts/ directory for changes so that static pages are built
+func ConvertWatcher() {
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer watcher.Close()
+
+	done := make(chan bool)
+	go func() {
+		for {
+			select {
+			case event := <-watcher.Events:
+				log.Println("event:", event)
+				switch {
+				case event.Op == fsnotify.Create:
+					log.Println("created file:", event.Name)
+					ConvertAllPosts()
+
+				case event.Op == fsnotify.Write:
+					log.Println("wrote file:", event.Name)
+					ConvertAllPosts()
+
+				case event.Op == fsnotify.Chmod:
+					log.Println("chmod file:", event.Name)
+					ConvertAllPosts()
+
+				case event.Op == fsnotify.Rename:
+					log.Println("renamed file:", event.Name)
+					ConvertAllPosts()
+
+				case event.Op == fsnotify.Remove:
+					log.Println("removed file:", event.Name)
+					ConvertAllPosts()
+
+				}
+
+			case err := <-watcher.Errors:
+				log.Println("error:", err)
+			}
+		}
+	}()
+
+	err = watcher.Add(config.Posts + "/")
+	if err != nil {
+		log.Fatal(err)
+	}
+	<-done
 }
