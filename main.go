@@ -104,7 +104,7 @@ func AddPost(w http.ResponseWriter, r *http.Request) {
 	f2.WriteString("slug = " + "\"" + titleslug + "\"\n")
 
 	// Redirect to admin page
-	http.Redirect(w, r, ("/admin/edit/" + titleslug), 301)
+	http.Redirect(w, r, ("/admin/edit"), 301)
 
 }
 
@@ -235,11 +235,8 @@ func ConvertPost(v string) {
 	}
 	defer r.Close()
 
-	tmpl := template.Must(template.New("header").Funcs(funcMap).ParseGlob(config.Templates + "/*.html"))
-	tmpl.Execute(r, map[string]interface{}{"Title": metadata.Title})
-
-	tmpl2 := template.Must(template.New("single").Funcs(funcMap).ParseGlob(config.Templates + "/*.html"))
-	tmpl2.Execute(r, map[string]interface{}{"Meta": &metadata, "Content": template.HTML(x), "Title": metadata.Title})
+	tmpl := template.Must(template.New("single").Funcs(funcMap).ParseGlob(config.Templates + "/*.html"))
+	tmpl.Execute(r, map[string]interface{}{"Metadata": &metadata, "Content": template.HTML(x), "Title": metadata.Title})
 
 }
 

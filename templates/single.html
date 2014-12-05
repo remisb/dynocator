@@ -1,9 +1,9 @@
 {{define "single"}}
-{{template "header"}}
-{{ .Meta.Title }}
+{{template "header" .}}
+{{ .Metadata.Title }}
 <hr>
   {{ .Content }}
 
   
-{{template "footer"}}
+{{template "footer" .}}
 {{end}}
