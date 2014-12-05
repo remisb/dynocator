@@ -24,6 +24,8 @@ var config = ReadConfig()
 func init() {
 
 	ConvertAllPosts()
+
+	Index()
 }
 
 func main() {
@@ -32,6 +34,7 @@ func main() {
 	r.HandleFunc("/"+config.Admin+"/add", AddGet).Methods("GET")
 	r.HandleFunc("/"+config.Admin+"/add", AddPost).Methods("POST")
 	r.HandleFunc("/"+config.Admin+"/edit/{post}", EditPost).Methods("GET")
+	r.HandleFunc("/"+config.Admin+"/edit/{post}", UpdatePost).Methods("POST")
 	r.HandleFunc("/"+config.Admin+"/uploadimage", UploadImage).Methods("POST")
 	r.PathPrefix("/").Handler(http.FileServer(http.Dir(config.Public)))
 
@@ -49,14 +52,17 @@ func AdminIndex(w http.ResponseWriter, r *http.Request) {
 
 	posts := ExtractPostsByDate()
 
-	p := map[string]Metadata{}
+	var meta []Metadata
 
 	for _, v := range posts {
-		p[v] = ReadMetaData(v)
+		info := ReadMetaData(v)
+		meta = append(meta, info)
+
 	}
+	//log.Print(meta)
 
 	tmpl := template.Must(template.New("index").Funcs(funcMap).ParseGlob(config.Admin + "/*.html"))
-	tmpl.Execute(w, map[string]interface{}{"Posts": &p})
+	tmpl.Execute(w, map[string]interface{}{"Posts": &meta})
 }
 
 func AddGet(w http.ResponseWriter, r *http.Request) {
@@ -119,6 +125,45 @@ func AddPost(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func UpdatePost(w http.ResponseWriter, r *http.Request) {
+
+	// Slugify the title
+	Title := r.FormValue("title")
+	Title = string(Title)
+	t := strings.Split(Title, " ")
+	titleslug := strings.ToLower(strings.Join(t, "-"))
+
+	z := ReadMetaData(titleslug)
+	zz := z.Date.Format(time.RFC3339)
+	log.Print(zz)
+
+	// Author and Post
+	Author := r.FormValue("author")
+	Post := r.FormValue("post")
+
+	// Save post as static html file
+	filename := config.Posts + "/" + titleslug + ".html"
+	f, _ := os.Create(filename)
+	f.WriteString(Post)
+
+	// Save metadata to toml file
+	filename2 := config.Metadata + "/" + titleslug + ".toml"
+	f2, _ := os.Create(filename2)
+	f2.WriteString("title = " + "\"" + Title + "\"\n")
+	f2.WriteString("author = " + "\"" + Author + "\"\n")
+
+	// Change time format to Zulu - hack, there's gotta be a better way to do this
+
+	//z = strings.Replace(z, "+", "Z", 1)
+	//log.Print(z.Date)
+	f2.WriteString("date = " + " " + zz + "\n")
+	f2.WriteString("slug = " + "\"" + titleslug + "\"\n")
+
+	// Redirect to admin page
+	http.Redirect(w, r, ("/admin"), 301)
+
+}
+
 func UploadImage(w http.ResponseWriter, r *http.Request) {
 	file, handler, err := r.FormFile("post")
 	if err != nil {
@@ -143,6 +188,84 @@ func UploadImage(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(m2)
+}
+
+type Post struct {
+	Title   string
+	Author  string
+	Date    time.Time
+	Slug    string
+	Summary template.HTML
+}
+
+func Index() {
+	if config.Index == "default" {
+		CreateIndex()
+	} else {
+		CreateSlugIndex(config.Index)
+	}
+}
+
+func CreateIndex() {
+
+	posts := ExtractPostsByDate()
+
+	var meta []Post
+
+	for _, v := range posts {
+
+		filename := config.Posts + "/" + v + ".html"
+
+		data, _ := ioutil.ReadFile(filename)
+		x := string(data)
+		y := strings.Split(x, " ")
+		yy := y[:70]
+		summ := strings.Join(yy, " ") + "..."
+
+		info := ReadMetaData(v)
+		meta = append(meta, Post{
+			Title:   info.Title,
+			Author:  info.Author,
+			Date:    info.Date,
+			Slug:    info.Slug,
+			Summary: template.HTML(summ),
+		})
+
+	}
+	//log.Print(meta)
+
+	os.Remove(config.Public + "/index.html")
+	r, err := os.OpenFile(config.Public+"/index.html", os.O_WRONLY|os.O_CREATE, 0777)
+	if err != nil {
+		log.Print(err)
+	}
+	defer r.Close()
+
+	tmpl := template.Must(template.New("index").Funcs(funcMap).ParseGlob(config.Templates + "/*.html"))
+	tmpl.Execute(r, map[string]interface{}{"Posts": &meta, "Title": config.Title})
+
+}
+
+func CreateSlugIndex(v string) {
+
+	filename := config.Posts + "/" + v + ".html"
+	dat, _ := ioutil.ReadFile(filename)
+
+	// Read file, split by lines and grab everything except first line, join lines again
+	x := string(dat)
+
+	os.Remove(config.Public + "/index.html")
+	r, err := os.OpenFile(config.Public+"/index.html", os.O_WRONLY|os.O_CREATE, 0777)
+	if err != nil {
+		log.Print(err)
+	}
+	defer r.Close()
+
+	metadata := ReadMetaData(v)
+
+	tmpl := template.Must(template.New("single").Funcs(funcMap).ParseGlob(config.Templates + "/*.html"))
+	tmpl.Execute(r, map[string]interface{}{"Metadata": &metadata, "Content": template.HTML(x), "Title": metadata.Title})
+
 }
 
 var funcMap = template.FuncMap{

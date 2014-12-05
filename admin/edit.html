@@ -5,7 +5,7 @@
 
 
 
-<form name="google-search" method="POST" action="/{{ .Admin }}/add">
+<form name="google-search" method="POST" action="/{{ .Admin }}/edit/{{ .Metadata.Slug }}">
 <div class="row collapse">
     <div class="small-3 large-2 columns">
       <span class="prefix">Title</span>
@@ -25,7 +25,7 @@
 
 <div class="row collapse">
     <div class="large-12 columns">
-        <textarea id="post" rows= "20">{{ .Post }}</textarea>
+        <textarea id="post" name="post" rows= "20">{{ .Post }}</textarea>
     </div>
   </div>
 <input class="button small large-12" type="submit" value="Send Message" />
