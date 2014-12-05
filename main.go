@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 )
@@ -21,7 +22,7 @@ var flags = ReadFlags()
 var config = ReadConfig()
 
 func init() {
-	log.Print(config.Baseurl)
+
 	ConvertAllPosts()
 }
 
@@ -45,15 +46,17 @@ func main() {
 }
 
 func AdminIndex(w http.ResponseWriter, r *http.Request) {
-	/*
-		files, _ := filepath.Glob(config.Posts + "/*.html")
 
-		for _, v := range files {
+	posts := ExtractPostsByDate()
 
-		}
-	*/
+	p := map[string]Metadata{}
+
+	for _, v := range posts {
+		p[v] = ReadMetaData(v)
+	}
+
 	tmpl := template.Must(template.New("index").Funcs(funcMap).ParseGlob(config.Admin + "/*.html"))
-	tmpl.Execute(w, nil)
+	tmpl.Execute(w, map[string]interface{}{"Posts": &p})
 }
 
 func AddGet(w http.ResponseWriter, r *http.Request) {
@@ -100,11 +103,19 @@ func AddPost(w http.ResponseWriter, r *http.Request) {
 	f2, _ := os.Create(filename2)
 	f2.WriteString("title = " + "\"" + Title + "\"\n")
 	f2.WriteString("author = " + "\"" + Author + "\"\n")
-	f2.WriteString("date = " + "\"" + time.Now().Format("January 2, 2006 3:04PM") + "\"\n")
+
+	// Change time format to Zulu - hack, there's gotta be a better way to do this
+	z := string(time.Now().Format(time.RFC3339 + "Z"))
+	k := strings.Split(z, "")
+	y := k[:19]
+	o := strings.Join(y, "")
+	o = o + "Z"
+	//z = strings.Replace(z, "+", "Z", 1)
+	f2.WriteString("date = " + " " + o + "\n")
 	f2.WriteString("slug = " + "\"" + titleslug + "\"\n")
 
 	// Redirect to admin page
-	http.Redirect(w, r, ("/admin/edit"), 301)
+	http.Redirect(w, r, ("/admin"), 301)
 
 }
 
@@ -166,7 +177,7 @@ func ReadConfig() Config {
 	if _, err := toml.DecodeFile(configfile, &config); err != nil {
 		log.Fatal(err)
 	}
-	log.Print(config.Index)
+	//log.Print(config.Index)
 	return config
 }
 
@@ -228,7 +239,7 @@ func ConvertPost(v string) {
 	fi = fi + "/index.html"
 	//log.Print(v)
 	metadata := ReadMetaData(v)
-	log.Print(metadata)
+	//log.Print(metadata)
 	r, err := os.OpenFile(fi, os.O_WRONLY|os.O_CREATE, 0777)
 	if err != nil {
 		log.Print(err)
@@ -243,7 +254,7 @@ func ConvertPost(v string) {
 type Metadata struct {
 	Title  string
 	Author string
-	Date   string
+	Date   time.Time
 	Slug   string
 }
 
@@ -303,4 +314,54 @@ func ConvertWatcher() {
 		log.Fatal(err)
 	}
 	<-done
+}
+
+func ExtractPostsByDate() []string {
+
+	files, _ := filepath.Glob(config.Posts + "/*.html")
+
+	dates := map[time.Time]string{}
+
+	for _, v := range files {
+
+		data := ReadMetaData(v)
+		dates[data.Date] = data.Slug
+
+	}
+
+	// Store keys from map
+	var keys []time.Time
+	for k := range dates {
+		keys = append(keys, k)
+	}
+	sort.Sort(TimeSlice(keys))
+
+	// Finally copy to new slice with sorted values
+	tm2 := []string{}
+	i := 0
+	for _, k := range keys {
+		tm2 = append(tm2, dates[k])
+		i++
+	}
+
+	return tm2
+
+}
+
+//
+type TimeSlice []time.Time
+
+// Forward request for length
+func (p TimeSlice) Len() int {
+	return len(p)
+}
+
+// Define compare
+func (p TimeSlice) Less(i, j int) bool {
+	return p[i].After(p[j])
+}
+
+// Define swap over an array
+func (p TimeSlice) Swap(i, j int) {
+	p[i], p[j] = p[j], p[i]
 }

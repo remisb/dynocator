@@ -3,5 +3,11 @@
 
 <h1>Admin</h1>
 
+{{ range .Posts }}
+	{{ .Title }}
+	{{ .Slug }}
+
+{{ end }}
+
 {{template "footer"}}
 {{end}}
