@@ -3,33 +3,21 @@
 
 <h1>Admin Edit Post</h1>
 
-
-
-<form name="google-search" method="POST" action="/{{ .Admin }}/edit/{{ .Metadata.Slug }}">
-<div class="row collapse">
-    <div class="small-3 large-2 columns">
-      <span class="prefix">Title</span>
-    </div>
-    <div class="small-9 large-10 columns">
-      <input type="text" name="title" value="{{ .Metadata.Title }}">
-    </div>
-</div>
-<div class="row collapse">
-    <div class="small-3 large-2 columns">
-      <span class="prefix">Author</span>
-    </div>
-    <div class="small-9 large-10 columns">
-      <input type="text" name="author" value="{{ .Metadata.Author }}">
-    </div>
-</div>
-
-<div class="row collapse">
-    <div class="large-12 columns">
-        <textarea id="post" name="post" rows= "20">{{ .Post }}</textarea>
-    </div>
+<form role="form" method="POST" action="/{{ .Admin }}/edit/{{ .Metadata.Slug }}">
+  <div class="form-group">
+    <label for="Title">Title</label>
+    <input type="text" class="form-control" name="title" value="{{ .Metadata.Title }}">
   </div>
-<input class="button small large-12" type="submit" value="Send Message" />
+  <div class="form-group">
+    <label for="Title">Author</label>
+    <input type="text" class="form-control" name="author" value="{{ .Metadata.Author }}">
+  </div>
+  <div class="form-group">
+    <textarea id="post" name="post" rows= "20">{{ .Post }}</textarea>
+  </div>
+  <button type="submit" class="btn btn-default">Save Post</button>
 </form>
+
 
 
 {{template "footer"}}

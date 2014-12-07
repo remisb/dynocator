@@ -74,7 +74,7 @@ func AdminIndex(w http.ResponseWriter, r *http.Request) {
 
 func AddGet(w http.ResponseWriter, r *http.Request) {
 
-	params := map[interface{}]interface{}{"Admin": config.Admin}
+	params := map[interface{}]interface{}{"Admin": config.Admin, "Title": config.Title}
 
 	CreateTemplate("add", (config.Admin + "/*.html"), w, params)
 
