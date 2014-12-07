@@ -38,6 +38,9 @@ func main() {
 	r.HandleFunc("/"+config.Admin+"/edit/{post}", EditPost).Methods("GET")
 	r.HandleFunc("/"+config.Admin+"/edit/{post}", UpdatePost).Methods("POST")
 	r.HandleFunc("/"+config.Admin+"/uploadimage", UploadImage).Methods("POST")
+
+	r.HandleFunc("/categories/{category}", Categories).Methods("GET")
+
 	r.PathPrefix("/").Handler(http.FileServer(http.Dir(config.Public)))
 
 	log.Printf("Server running on %s", ("http://localhost" + flags.Port))
@@ -107,6 +110,7 @@ func AddPost(w http.ResponseWriter, r *http.Request) {
 	// Author and Post
 	Author := r.FormValue("author")
 	Post := r.FormValue("post")
+	Categories := r.FormValue("categories")
 
 	// Save post as static html file
 	filename := config.Posts + "/" + titleslug + ".html"
@@ -128,6 +132,13 @@ func AddPost(w http.ResponseWriter, r *http.Request) {
 	//z = strings.Replace(z, "+", "Z", 1)
 	f2.WriteString("date = " + " " + o + "\n")
 	f2.WriteString("slug = " + "\"" + titleslug + "\"\n")
+	f2.WriteString("categories = " + "[")
+
+	cat := strings.Split(Categories, ",")
+	for _, v := range cat {
+		f2.WriteString("\"" + v + "\"" + ", ")
+	}
+	f2.WriteString("]")
 
 	// Redirect to admin page
 	http.Redirect(w, r, ("/admin"), 301)
@@ -144,11 +155,12 @@ func UpdatePost(w http.ResponseWriter, r *http.Request) {
 
 	z := ReadMetaData(titleslug)
 	zz := z.Date.Format(time.RFC3339)
-	log.Print(zz)
+	//log.Print(zz)
 
 	// Author and Post
 	Author := r.FormValue("author")
 	Post := r.FormValue("post")
+	Categories := r.FormValue("categories")
 
 	// Save post as static html file
 	filename := config.Posts + "/" + titleslug + ".html"
@@ -167,6 +179,14 @@ func UpdatePost(w http.ResponseWriter, r *http.Request) {
 	//log.Print(z.Date)
 	f2.WriteString("date = " + " " + zz + "\n")
 	f2.WriteString("slug = " + "\"" + titleslug + "\"\n")
+
+	f2.WriteString("categories = " + "[")
+
+	cat := strings.Split(Categories, ",")
+	for _, v := range cat {
+		f2.WriteString("\"" + v + "\"" + ", ")
+	}
+	f2.WriteString("]")
 
 	// Redirect to admin page
 	http.Redirect(w, r, ("/admin"), 301)
@@ -197,6 +217,27 @@ func UploadImage(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(m2)
+}
+
+func Categories(w http.ResponseWriter, r *http.Request) {
+
+	vars := mux.Vars(r)
+	category := vars["category"]
+
+	posts := ExtractPostsByDate()
+	//log.Print(posts)
+	var new []string
+	for _, v := range posts {
+		met := ReadMetaData(v)
+		//log.Print(met.Categories)
+		for _, n := range met.Categories {
+			if strings.TrimSpace(n) == category {
+				new = append(new, v)
+			}
+		}
+	}
+
+	log.Print(new)
 }
 
 type Post struct {
@@ -386,10 +427,11 @@ func ConvertPost(v string) {
 }
 
 type Metadata struct {
-	Title  string
-	Author string
-	Date   time.Time
-	Slug   string
+	Title      string
+	Author     string
+	Date       time.Time
+	Slug       string
+	Categories []string
 }
 
 // Reads info from config file
