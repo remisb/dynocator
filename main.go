@@ -48,6 +48,11 @@ func main() {
 	http.ListenAndServe(flags.Port, nil)
 }
 
+func CreateTemplate(name string, globpath string, w io.Writer, params map[interface{}]interface{}) {
+	tmpl := template.Must(template.New(name).Funcs(funcMap).ParseGlob(globpath))
+	tmpl.Execute(w, params)
+}
+
 func AdminIndex(w http.ResponseWriter, r *http.Request) {
 
 	posts := ExtractPostsByDate()
@@ -60,9 +65,9 @@ func AdminIndex(w http.ResponseWriter, r *http.Request) {
 
 	}
 	//log.Print(meta)
+	params := map[interface{}]interface{}{"Posts": &meta}
 
-	tmpl := template.Must(template.New("index").Funcs(funcMap).ParseGlob(config.Admin + "/*.html"))
-	tmpl.Execute(w, map[string]interface{}{"Posts": &meta})
+	CreateTemplate("index", (config.Admin + "/*.html"), w, params)
 }
 
 func AddGet(w http.ResponseWriter, r *http.Request) {
@@ -82,8 +87,9 @@ func EditPost(w http.ResponseWriter, r *http.Request) {
 
 	metadata := ReadMetaData(y)
 
-	tmpl := template.Must(template.New("edit").Funcs(funcMap).ParseGlob(config.Admin + "/*.html"))
-	tmpl.Execute(w, map[string]interface{}{"Post": x, "Admin": config.Admin, "Metadata": &metadata})
+	params := map[interface{}]interface{}{"Post": x, "Admin": config.Admin, "Metadata": &metadata}
+
+	CreateTemplate("edit", (config.Admin + "/*.html"), w, params)
 
 }
 
