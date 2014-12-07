@@ -21,6 +21,8 @@ import (
 var flags = ReadFlags()
 var config = ReadConfig()
 
+var Params map[interface{}]interface{}
+
 func init() {
 
 	ConvertAllPosts()
@@ -65,7 +67,7 @@ func AdminIndex(w http.ResponseWriter, r *http.Request) {
 
 	}
 	//log.Print(meta)
-	params := map[interface{}]interface{}{"Posts": &meta}
+	params := map[interface{}]interface{}{"Posts": &meta, "Title": "Admin"}
 
 	CreateTemplate("index", (config.Admin + "/*.html"), w, params)
 }
@@ -88,7 +90,7 @@ func EditPost(w http.ResponseWriter, r *http.Request) {
 
 	metadata := ReadMetaData(y)
 
-	params := map[interface{}]interface{}{"Post": x, "Admin": config.Admin, "Metadata": &metadata}
+	params := map[interface{}]interface{}{"Post": x, "Admin": config.Admin, "Metadata": &metadata, "Title": "Edit Post"}
 
 	CreateTemplate("edit", (config.Admin + "/*.html"), w, params)
 
