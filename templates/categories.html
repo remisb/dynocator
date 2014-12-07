@@ -1,0 +1,14 @@
+{{define "categories"}}
+{{template "header" .}}
+
+{{ range .Posts }}
+<p> 
+  <h1><a href="{{ .Slug }}">{{ .Title }}</a></h1>
+  By {{ .Author }} on {{ .Date }}
+  {{ .Summary }}
+</p>
+{{ end}}
+
+  
+{{template "footer"}}
+{{end}}

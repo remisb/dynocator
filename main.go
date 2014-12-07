@@ -226,18 +226,46 @@ func Categories(w http.ResponseWriter, r *http.Request) {
 
 	posts := ExtractPostsByDate()
 	//log.Print(posts)
-	var new []string
+	var cats []string
 	for _, v := range posts {
 		met := ReadMetaData(v)
 		//log.Print(met.Categories)
 		for _, n := range met.Categories {
 			if strings.TrimSpace(n) == category {
-				new = append(new, v)
+				cats = append(cats, v)
 			}
 		}
 	}
 
-	log.Print(new)
+	log.Print(cats)
+
+	var meta []Post
+
+	for _, v := range cats {
+
+		filename := config.Posts + "/" + v + ".html"
+
+		data, _ := ioutil.ReadFile(filename)
+		x := string(data)
+		y := strings.Split(x, " ")
+		yy := y[:70]
+		summ := strings.Join(yy, " ") + "..."
+
+		info := ReadMetaData(v)
+		meta = append(meta, Post{
+			Title:   info.Title,
+			Author:  info.Author,
+			Date:    info.Date,
+			Slug:    info.Slug,
+			Summary: template.HTML(summ),
+		})
+
+	}
+
+	params := map[interface{}]interface{}{"Posts": &meta, "Title": config.Title}
+
+	CreateTemplate("categories", (config.Templates + "/*.html"), w, params)
+
 }
 
 type Post struct {
