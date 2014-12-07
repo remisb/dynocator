@@ -72,8 +72,9 @@ func AdminIndex(w http.ResponseWriter, r *http.Request) {
 
 func AddGet(w http.ResponseWriter, r *http.Request) {
 
-	tmpl := template.Must(template.New("add").Funcs(funcMap).ParseGlob(config.Admin + "/*.html"))
-	tmpl.Execute(w, map[string]interface{}{"Admin": config.Admin})
+	params := map[interface{}]interface{}{"Admin": config.Admin}
+
+	CreateTemplate("add", (config.Admin + "/*.html"), w, params)
 
 }
 
