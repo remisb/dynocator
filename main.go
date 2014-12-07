@@ -247,8 +247,9 @@ func CreateIndex() {
 	}
 	defer r.Close()
 
-	tmpl := template.Must(template.New("index").Funcs(funcMap).ParseGlob(config.Templates + "/*.html"))
-	tmpl.Execute(r, map[string]interface{}{"Posts": &meta, "Title": config.Title})
+	params := map[interface{}]interface{}{"Posts": &meta, "Title": config.Title}
+
+	CreateTemplate("index", (config.Templates + "/*.html"), r, params)
 
 }
 
@@ -269,8 +270,9 @@ func CreateSlugIndex(v string) {
 
 	metadata := ReadMetaData(v)
 
-	tmpl := template.Must(template.New("single").Funcs(funcMap).ParseGlob(config.Templates + "/*.html"))
-	tmpl.Execute(r, map[string]interface{}{"Metadata": &metadata, "Content": template.HTML(x), "Title": metadata.Title})
+	params := map[interface{}]interface{}{"Metadata": &metadata, "Content": template.HTML(x), "Title": metadata.Title}
+
+	CreateTemplate("single", (config.Templates + "/*.html"), r, params)
 
 }
 
