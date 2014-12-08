@@ -21,8 +21,6 @@ import (
 var flags = ReadFlags()
 var config = ReadConfig()
 
-var Params map[interface{}]interface{}
-
 func init() {
 
 	ConvertAllPosts()
@@ -39,7 +37,8 @@ func main() {
 	r.HandleFunc("/"+config.Admin+"/edit/{post}", UpdatePost).Methods("POST")
 	r.HandleFunc("/"+config.Admin+"/uploadimage", UploadImage).Methods("POST")
 
-	r.HandleFunc("/categories/{category}", Categories).Methods("GET")
+	r.HandleFunc("/category/{category}", Categories).Methods("GET")
+	r.HandleFunc("/categories", ListCategories).Methods("GET")
 
 	r.PathPrefix("/").Handler(http.FileServer(http.Dir(config.Public)))
 
@@ -111,6 +110,8 @@ func AddPost(w http.ResponseWriter, r *http.Request) {
 	Author := r.FormValue("author")
 	Post := r.FormValue("post")
 	Categories := r.FormValue("categories")
+	Publish := r.FormValue("publish")
+	log.Print(Publish)
 
 	// Save post as static html file
 	filename := config.Posts + "/" + titleslug + ".html"
@@ -134,11 +135,17 @@ func AddPost(w http.ResponseWriter, r *http.Request) {
 	f2.WriteString("slug = " + "\"" + titleslug + "\"\n")
 	f2.WriteString("categories = " + "[")
 
-	cat := strings.Split(Categories, ",")
+	cat := strings.Split(strings.TrimSpace(Categories), ",")
 	for _, v := range cat {
-		f2.WriteString("\"" + v + "\"" + ", ")
+		f2.WriteString("\"" + v + "\"" + ",")
 	}
-	f2.WriteString("]")
+	f2.WriteString("]\n")
+
+	if Publish == "publish" {
+		f2.WriteString("publish = " + "true" + "\n")
+	} else {
+		f2.WriteString("publish = " + "false" + "\n")
+	}
 
 	// Redirect to admin page
 	http.Redirect(w, r, ("/admin"), 301)
@@ -162,6 +169,15 @@ func UpdatePost(w http.ResponseWriter, r *http.Request) {
 	Post := r.FormValue("post")
 	Categories := r.FormValue("categories")
 
+	c := strings.Replace(Categories, ",", " ", -1)
+	c = strings.TrimSpace(Categories)
+	x := strings.Split(c, " ")
+	for k, v := range x {
+		log.Print(k, v)
+	}
+
+	Publish := r.FormValue("publish")
+
 	// Save post as static html file
 	filename := config.Posts + "/" + titleslug + ".html"
 	f, _ := os.Create(filename)
@@ -182,11 +198,18 @@ func UpdatePost(w http.ResponseWriter, r *http.Request) {
 
 	f2.WriteString("categories = " + "[")
 
-	cat := strings.Split(Categories, ",")
+	cat := strings.Split(strings.TrimSpace(Categories), ",")
+	log.Print(cat)
 	for _, v := range cat {
-		f2.WriteString("\"" + v + "\"" + ", ")
+		f2.WriteString("\"" + v + "\"" + ",")
 	}
-	f2.WriteString("]")
+	f2.WriteString("]\n")
+
+	if Publish == "publish" {
+		f2.WriteString("publish = " + "true" + "\n")
+	} else {
+		f2.WriteString("publish = " + "false" + "\n")
+	}
 
 	// Redirect to admin page
 	http.Redirect(w, r, ("/admin"), 301)
@@ -225,9 +248,18 @@ func Categories(w http.ResponseWriter, r *http.Request) {
 	category := vars["category"]
 
 	posts := ExtractPostsByDate()
+
+	var published []string
+
+	for _, v := range posts {
+		info := ReadMetaData(v)
+		if info.Publish == true {
+			published = append(published, v)
+		}
+	}
 	//log.Print(posts)
 	var cats []string
-	for _, v := range posts {
+	for _, v := range published {
 		met := ReadMetaData(v)
 		//log.Print(met.Categories)
 		for _, n := range met.Categories {
@@ -264,8 +296,55 @@ func Categories(w http.ResponseWriter, r *http.Request) {
 
 	params := map[interface{}]interface{}{"Posts": &meta, "Title": config.Title}
 
+	CreateTemplate("category", (config.Templates + "/*.html"), w, params)
+
+}
+
+func ListCategories(w http.ResponseWriter, r *http.Request) {
+
+	posts := ExtractPostsByDate()
+
+	var published []string
+
+	for _, v := range posts {
+		info := ReadMetaData(v)
+		if info.Publish == true {
+			published = append(published, v)
+		}
+	}
+
+	var cats []string
+	for _, v := range published {
+		info := ReadMetaData(v)
+		for _, x := range info.Categories {
+			cats = append(cats, strings.TrimSpace(x))
+		}
+	}
+
+	fats := UniqStr(cats)
+	log.Print(fats)
+
+	params := map[interface{}]interface{}{"Categories": fats, "Title": config.Title}
+
 	CreateTemplate("categories", (config.Templates + "/*.html"), w, params)
 
+}
+
+func UniqStr(col []string) []string {
+	m := map[string]struct{}{}
+	for _, v := range col {
+		if _, ok := m[v]; !ok {
+			m[v] = struct{}{}
+		}
+	}
+	list := make([]string, len(m))
+
+	i := 0
+	for v := range m {
+		list[i] = v
+		i++
+	}
+	return list
 }
 
 type Post struct {
@@ -288,9 +367,18 @@ func CreateIndex() {
 
 	posts := ExtractPostsByDate()
 
-	var meta []Post
+	var published []string
 
 	for _, v := range posts {
+		info := ReadMetaData(v)
+		if info.Publish == true {
+			published = append(published, v)
+		}
+	}
+
+	var meta []Post
+
+	for _, v := range published {
 
 		filename := config.Posts + "/" + v + ".html"
 
@@ -460,6 +548,7 @@ type Metadata struct {
 	Date       time.Time
 	Slug       string
 	Categories []string
+	Publish    bool
 }
 
 // Reads info from config file
@@ -493,18 +582,23 @@ func ConvertWatcher() {
 				case event.Op == fsnotify.Create:
 					log.Println("created file:", event.Name)
 					ConvertAllPosts()
+					Index()
 				case event.Op == fsnotify.Write:
 					log.Println("wrote file:", event.Name)
 					ConvertAllPosts()
+					Index()
 				case event.Op == fsnotify.Chmod:
 					log.Println("chmod file:", event.Name)
 					ConvertAllPosts()
+					Index()
 				case event.Op == fsnotify.Rename:
 					log.Println("renamed file:", event.Name)
 					ConvertAllPosts()
+					Index()
 				case event.Op == fsnotify.Remove:
 					log.Println("removed file:", event.Name)
 					ConvertAllPosts()
+					Index()
 				}
 
 			case err := <-watcher.Errors:
@@ -514,6 +608,10 @@ func ConvertWatcher() {
 	}()
 
 	err = watcher.Add(config.Posts + "/")
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = watcher.Add(config.Metadata + "/")
 	if err != nil {
 		log.Fatal(err)
 	}

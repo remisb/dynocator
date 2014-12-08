@@ -4,23 +4,24 @@
 <h1>Admin</h1>
 
 <p>
-
-<table>
+<table class="table table-striped">
   <thead>
     <tr>
-      <th width="200">Post</th>
-      <th width="300">Published</th>
+      <th>Post</th>
+      <th>Author</th>
+      <th>Published</th>
     </tr>
   </thead>
   <tbody>
   {{ range .Posts }}
   <tr>
-    	<td><a href="/{{ Admin }}/edit/{{ .Slug }}">{{ .Title }}</a></td>
-    	<td>{{ .Date }}</td>
-    	
+      <td><a href="/{{ Admin }}/edit/{{ .Slug }}">{{ .Title }}</a></td>
+      <td>{{ .Author }}</td>
+      <td>{{ .Date }}</td>
+      
     </tr>
-{{ end }}
-
+  {{ end }}
+  </tbody>
 </table>
 
 </p>
