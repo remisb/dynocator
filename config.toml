@@ -1,5 +1,5 @@
 baseurl = "http://localhost:1414"
-title = "My Beautiful Site"
+title = "My Beautiful New Site"
 templates = "templates"
 posts = "posts"
 public = "public"

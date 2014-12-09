@@ -1,7 +1,7 @@
 {{define "edit"}}
 {{template "header" .}}
 
-<h1>Admin Edit Post</h1>
+<h2>Edit Post</h2>
 
 <form role="form" method="POST" action="/{{ .Admin }}/edit/{{ .Metadata.Slug }}">
   <div class="form-group">
@@ -13,7 +13,7 @@
     <input type="text" class="form-control" name="author" value="{{ .Metadata.Author }}">
   </div>
   <div class="form-group">
-    <label for="Title">Author</label>
+    <label for="Title">Categories</label>
     <input type="text" class="form-control" name="categories" value="{{ range .Metadata.Categories }}{{.}}, {{ end }}">
   </div>
   <div class="form-group">
