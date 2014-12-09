@@ -3,6 +3,12 @@ dynocator
 
 A lightweight blog/website engine written in Go
 
+## Some Screenshots
+
+![Posts](http://i.imgur.com/FpXAw0P.png)
+
+![EditPost](http://i.imgur.com/soOFQ0h.png)
+
 ## Overview
 
 dynocator is a static blog/website engine with an WYSIWYG editor for folks who don't want to write Markdown posts. Some features are:
