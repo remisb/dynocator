@@ -33,6 +33,8 @@ func main() {
 	r.HandleFunc("/"+config.Admin, AdminIndex).Methods("GET")
 	r.HandleFunc("/"+config.Admin+"/add", AddGet).Methods("GET")
 	r.HandleFunc("/"+config.Admin+"/add", AddPost).Methods("POST")
+	r.HandleFunc("/"+config.Admin+"/settings", SettingsGet).Methods("GET")
+	r.HandleFunc("/"+config.Admin+"/settings", SettingsPost).Methods("POST")
 	r.HandleFunc("/"+config.Admin+"/edit/{post}", EditPost).Methods("GET")
 	r.HandleFunc("/"+config.Admin+"/edit/{post}", UpdatePost).Methods("POST")
 	r.HandleFunc("/"+config.Admin+"/uploadimage", UploadImage).Methods("POST")
@@ -82,6 +84,47 @@ func AddGet(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func SettingsGet(w http.ResponseWriter, r *http.Request) {
+
+	var conf = ReadConfig()
+
+	params := map[interface{}]interface{}{"Config": conf, "Title": config.Title}
+
+	CreateTemplate("settings", (config.Admin + "/*.html"), w, params)
+
+}
+
+func SettingsPost(w http.ResponseWriter, r *http.Request) {
+
+	baseurl := r.FormValue("baseurl")
+	title := r.FormValue("title")
+	templates := r.FormValue("templates")
+	posts := r.FormValue("posts")
+	public := r.FormValue("public")
+	admin := r.FormValue("admin")
+	metadata := r.FormValue("metadata")
+	index := r.FormValue("index")
+
+	var configfile = flags.Configfile
+	filename := configfile
+	f2, _ := os.Create(filename)
+
+	f2.WriteString("baseurl = " + "\"" + baseurl + "\"\n")
+	f2.WriteString("title = " + "\"" + title + "\"\n")
+	f2.WriteString("templates = " + "\"" + templates + "\"\n")
+	f2.WriteString("posts = " + "\"" + posts + "\"\n")
+	f2.WriteString("public = " + "\"" + public + "\"\n")
+	f2.WriteString("admin = " + "\"" + admin + "\"\n")
+	f2.WriteString("metadata = " + "\"" + metadata + "\"\n")
+	f2.WriteString("index = " + "\"" + index + "\"")
+
+	ConvertAllPosts()
+	Index()
+
+	http.Redirect(w, r, ("/admin/settings"), 301)
+
+}
+
 func EditPost(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)
@@ -92,7 +135,7 @@ func EditPost(w http.ResponseWriter, r *http.Request) {
 
 	metadata := ReadMetaData(y)
 
-	params := map[interface{}]interface{}{"Post": x, "Admin": config.Admin, "Metadata": &metadata, "Title": "Edit Post"}
+	params := map[interface{}]interface{}{"Post": x, "Admin": config.Admin, "Metadata": &metadata, "Title": "Edit Post", "Baseurl": config.Baseurl}
 
 	CreateTemplate("edit", (config.Admin + "/*.html"), w, params)
 
@@ -357,7 +400,8 @@ type Post struct {
 }
 
 func Index() {
-	if config.Index == "default" {
+	var conf = ReadConfig()
+	if conf.Index == "default" {
 		CreateIndex()
 	} else {
 		CreateSlugIndex(config.Index)

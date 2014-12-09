@@ -1,0 +1,48 @@
+{{define "settings"}}
+{{template "header" .}}
+
+<h1>Settings</h1>
+
+<form role="form" method="POST" action="/{{ Admin }}/settings">
+  <div class="form-group">
+    <label for="Title">Baseurl</label>
+    <input type="text" class="form-control" name="baseurl" value="{{ .Config.Baseurl }}">
+  </div>
+  <div class="form-group">
+    <label for="Title">Site Title</label>
+    <input type="text" class="form-control" name="title" value="{{ .Config.Title }}">
+  </div>
+  <div class="form-group">
+    <label for="Title">Templates Directory</label>
+    <input type="text" class="form-control" name="templates" value="{{ .Config.Templates }}">
+  </div>
+  <div class="form-group">
+    <label for="Title">Posts Directory</label>
+    <input type="text" class="form-control" name="posts" value="{{ .Config.Posts }}">
+  </div>
+  <div class="form-group">
+    <label for="Title">Public Directory</label>
+    <input type="text" class="form-control" name="public" value="{{ .Config.Public }}">
+  </div>
+  <div class="form-group">
+    <label for="Title">Admin Directory</label>
+    <input type="text" class="form-control" name="admin" value="{{ .Config.Admin }}">
+  </div>
+  <div class="form-group">
+    <label for="Title">Public Directory</label>
+    <input type="text" class="form-control" name="public" value="{{ .Config.Public }}">
+  </div>
+  <div class="form-group">
+    <label for="Title">Metadata Directory</label>
+    <input type="text" class="form-control" name="metadata" value="{{ .Config.Metadata }}">
+  </div>
+  <div class="form-group">
+    <label for="Title">Index Page</label>
+    <input type="text" class="form-control" name="index" value="{{ .Config.Index }}">
+  </div>
+  <button type="submit" class="btn btn-default">Save Settings</button>
+</form>
+
+
+{{template "footer"}}
+{{end}}
