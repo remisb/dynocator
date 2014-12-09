@@ -169,13 +169,6 @@ func UpdatePost(w http.ResponseWriter, r *http.Request) {
 	Post := r.FormValue("post")
 	Categories := r.FormValue("categories")
 
-	c := strings.Replace(Categories, ",", " ", -1)
-	c = strings.TrimSpace(Categories)
-	x := strings.Split(c, " ")
-	for k, v := range x {
-		log.Print(k, v)
-	}
-
 	Publish := r.FormValue("publish")
 
 	// Save post as static html file
@@ -199,8 +192,16 @@ func UpdatePost(w http.ResponseWriter, r *http.Request) {
 	f2.WriteString("categories = " + "[")
 
 	cat := strings.Split(strings.TrimSpace(Categories), ",")
-	log.Print(cat)
-	for _, v := range cat {
+	var cat2 []string
+	for k, v := range cat {
+		if v != "" {
+			cat2 = append(cat2, strings.TrimSpace(v))
+			log.Print(k, v)
+		}
+	}
+	log.Print(cat2)
+
+	for _, v := range cat2 {
 		f2.WriteString("\"" + v + "\"" + ",")
 	}
 	f2.WriteString("]\n")
@@ -537,8 +538,9 @@ func ConvertPost(v string) {
 	}
 	defer r.Close()
 
-	tmpl := template.Must(template.New("single").Funcs(funcMap).ParseGlob(config.Templates + "/*.html"))
-	tmpl.Execute(r, map[string]interface{}{"Metadata": &metadata, "Content": template.HTML(x), "Title": metadata.Title})
+	params := map[interface{}]interface{}{"Metadata": &metadata, "Content": template.HTML(x), "Title": metadata.Title}
+
+	CreateTemplate("single", (config.Templates + "/*.html"), r, params)
 
 }
 
