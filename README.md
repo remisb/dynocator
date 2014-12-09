@@ -15,6 +15,7 @@ A lightweight blog/website engine written in Go
 ## Overview
 
 dynocator is a static blog/website engine with an WYSIWYG editor for folks who don't want to write Markdown posts. Some features are:
+- Uses [Froala](https://editor.froala.com) editor to write/edit posts
 - Has an admin section to add/remove/edit posts
 - Support for drafts
 - Categories
