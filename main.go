@@ -23,8 +23,18 @@ var config = ReadConfig()
 
 func init() {
 
-	ConvertAllPosts()
+	t := time.Now()
 
+	Refresh()
+
+	t2 := time.Now()
+	diff := t2.Sub(t)
+
+	log.Printf("In %s", diff)
+}
+
+func Refresh() {
+	ConvertAllPosts()
 	Index()
 }
 
@@ -483,6 +493,7 @@ func CreateIndex() {
 
 	CreateTemplate("index", (config.Templates + "/*.html"), r, params)
 
+	log.Printf("Index page generated")
 }
 
 func CreateSlugIndex(v string) {
@@ -574,6 +585,7 @@ func ReadFlags() Flag {
 
 // Converts all markdown posts to static pages
 func ConvertAllPosts() {
+	i := 0
 
 	x := config.Public + "/*"
 	// Read all the files
@@ -594,9 +606,10 @@ func ConvertAllPosts() {
 	for _, v := range files {
 		//log.Print(v)
 		ConvertPost(v)
-
+		i++
 	}
 
+	log.Printf("%d pages created", i)
 }
 
 // Converts a post to a static page
@@ -666,24 +679,19 @@ func ConvertWatcher() {
 				switch {
 				case event.Op == fsnotify.Create:
 					log.Println("created file:", event.Name)
-					ConvertAllPosts()
-					Index()
+					Refresh()
 				case event.Op == fsnotify.Write:
 					log.Println("wrote file:", event.Name)
-					ConvertAllPosts()
-					Index()
+					Refresh()
 				case event.Op == fsnotify.Chmod:
 					log.Println("chmod file:", event.Name)
-					ConvertAllPosts()
-					Index()
+					Refresh()
 				case event.Op == fsnotify.Rename:
 					log.Println("renamed file:", event.Name)
-					ConvertAllPosts()
-					Index()
+					Refresh()
 				case event.Op == fsnotify.Remove:
 					log.Println("removed file:", event.Name)
-					ConvertAllPosts()
-					Index()
+					Refresh()
 				}
 
 			case err := <-watcher.Errors:
