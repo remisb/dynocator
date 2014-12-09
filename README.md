@@ -16,6 +16,8 @@ A lightweight blog/website engine written in Go
 
 dynocator is a static blog/website engine with an WYSIWYG editor for folks who don't want to write Markdown posts. Some features are:
 - Has an admin section to add/remove/edit posts
+- Support for drafts
+- Categories
 - Watches `posts` folder for changes so that new posts are automagically converted to static html files
 - Can either create a blog index page from posts, or use one of the posts as the main index page
 - Uses Go's cool templates to make simple but powerful frontend
