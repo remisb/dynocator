@@ -269,7 +269,8 @@ func UpdatePost(w http.ResponseWriter, r *http.Request) {
 		titleslug := strings.ToLower(strings.Join(t, "-"))
 		log.Print(titleslug)
 
-		os.Remove(config.Public + "/index.html")
+		os.Remove(config.Posts + "/" + titleslug + ".html")
+		os.Remove(config.Metadata + "/" + titleslug + ".toml")
 
 		// Redirect to admin page
 		http.Redirect(w, r, ("/admin"), 301)
@@ -338,9 +339,15 @@ func Categories(w http.ResponseWriter, r *http.Request) {
 
 		data, _ := ioutil.ReadFile(filename)
 		x := string(data)
-		y := strings.Split(x, " ")
-		yy := y[:70]
-		summ := strings.Join(yy, " ") + "..."
+		y := strings.Split(x, "<p class=\"fr-tag\">")
+
+		var summ string
+		if len(y) == 1 {
+			summ = ""
+		} else {
+			yy := y[:2]
+			summ = strings.Join(yy, " ")
+		}
 
 		info := ReadMetaData(v)
 		meta = append(meta, Post{
@@ -443,9 +450,15 @@ func CreateIndex() {
 
 		data, _ := ioutil.ReadFile(filename)
 		x := string(data)
-		y := strings.Split(x, " ")
-		yy := y[:70]
-		summ := strings.Join(yy, " ") + "..."
+		y := strings.Split(x, "<p class=\"fr-tag\">")
+
+		var summ string
+		if len(y) == 1 {
+			summ = ""
+		} else {
+			yy := y[:2]
+			summ = strings.Join(yy, " ")
+		}
 
 		info := ReadMetaData(v)
 		meta = append(meta, Post{
