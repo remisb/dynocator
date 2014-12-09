@@ -511,6 +511,7 @@ func CreateSlugIndex(v string) {
 var funcMap = template.FuncMap{
 	"Admin":    Admin,
 	"Friendly": Friendly,
+	"Ago":      Ago,
 }
 
 func Admin() string {
@@ -519,6 +520,11 @@ func Admin() string {
 
 func Friendly(t time.Time) string {
 	x := t.Format("January _2 2006 15:04:05")
+	return x
+}
+
+func Ago(t time.Time) time.Duration {
+	x := t.Sub(time.Now())
 	return x
 }
 

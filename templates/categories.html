@@ -4,7 +4,7 @@
 <h1>Admin</h1>
 
 {{ range .Categories }}
-  {{.}}
+  <a href="category/{{.}}">{{.}}</a>
 {{ end }}
 </p>
 {{template "footer"}}
