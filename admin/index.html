@@ -9,6 +9,7 @@
     <tr>
       <th>Post</th>
       <th>Author</th>
+      <th>Date</th>
       <th>Published</th>
     </tr>
   </thead>
@@ -17,8 +18,8 @@
   <tr>
       <td><a href="/{{ Admin }}/edit/{{ .Slug }}">{{ .Title }}</a></td>
       <td>{{ .Author }}</td>
-      <td>{{ .Date }}</td>
-      
+      <td>{{ Friendly .Date }}</td>
+      <td>{{ if .Publish }}{{ "Published" }} {{ else }} {{ "Draft" }}{{ end }}</td>
     </tr>
   {{ end }}
   </tbody>

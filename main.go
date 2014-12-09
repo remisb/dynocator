@@ -154,7 +154,6 @@ func AddPost(w http.ResponseWriter, r *http.Request) {
 	Post := r.FormValue("post")
 	Categories := r.FormValue("categories")
 	Publish := r.FormValue("publish")
-	log.Print(Publish)
 
 	// Save post as static html file
 	filename := config.Posts + "/" + titleslug + ".html"
@@ -197,66 +196,84 @@ func AddPost(w http.ResponseWriter, r *http.Request) {
 
 func UpdatePost(w http.ResponseWriter, r *http.Request) {
 
-	// Slugify the title
-	Title := r.FormValue("title")
-	Title = string(Title)
-	t := strings.Split(Title, " ")
-	titleslug := strings.ToLower(strings.Join(t, "-"))
+	Submit := r.FormValue("submit")
 
-	z := ReadMetaData(titleslug)
-	zz := z.Date.Format(time.RFC3339)
-	//log.Print(zz)
+	if Submit == "save" {
 
-	// Author and Post
-	Author := r.FormValue("author")
-	Post := r.FormValue("post")
-	Categories := r.FormValue("categories")
+		// Slugify the title
+		Title := r.FormValue("title")
+		Title = string(Title)
+		t := strings.Split(Title, " ")
+		titleslug := strings.ToLower(strings.Join(t, "-"))
 
-	Publish := r.FormValue("publish")
+		z := ReadMetaData(titleslug)
+		zz := z.Date.Format(time.RFC3339)
+		//log.Print(zz)
 
-	// Save post as static html file
-	filename := config.Posts + "/" + titleslug + ".html"
-	f, _ := os.Create(filename)
-	f.WriteString(Post)
+		// Author and Post
+		Author := r.FormValue("author")
+		Post := r.FormValue("post")
+		Categories := r.FormValue("categories")
 
-	// Save metadata to toml file
-	filename2 := config.Metadata + "/" + titleslug + ".toml"
-	f2, _ := os.Create(filename2)
-	f2.WriteString("title = " + "\"" + Title + "\"\n")
-	f2.WriteString("author = " + "\"" + Author + "\"\n")
+		Publish := r.FormValue("publish")
 
-	// Change time format to Zulu - hack, there's gotta be a better way to do this
+		// Save post as static html file
+		filename := config.Posts + "/" + titleslug + ".html"
+		f, _ := os.Create(filename)
+		f.WriteString(Post)
 
-	//z = strings.Replace(z, "+", "Z", 1)
-	//log.Print(z.Date)
-	f2.WriteString("date = " + " " + zz + "\n")
-	f2.WriteString("slug = " + "\"" + titleslug + "\"\n")
+		// Save metadata to toml file
+		filename2 := config.Metadata + "/" + titleslug + ".toml"
+		f2, _ := os.Create(filename2)
+		f2.WriteString("title = " + "\"" + Title + "\"\n")
+		f2.WriteString("author = " + "\"" + Author + "\"\n")
 
-	f2.WriteString("categories = " + "[")
+		// Change time format to Zulu - hack, there's gotta be a better way to do this
 
-	cat := strings.Split(strings.TrimSpace(Categories), ",")
-	var cat2 []string
-	for k, v := range cat {
-		if v != "" {
-			cat2 = append(cat2, strings.TrimSpace(v))
-			log.Print(k, v)
+		//z = strings.Replace(z, "+", "Z", 1)
+		//log.Print(z.Date)
+		f2.WriteString("date = " + " " + zz + "\n")
+		f2.WriteString("slug = " + "\"" + titleslug + "\"\n")
+
+		f2.WriteString("categories = " + "[")
+
+		cat := strings.Split(strings.TrimSpace(Categories), ",")
+		var cat2 []string
+		for k, v := range cat {
+			if v != "" {
+				cat2 = append(cat2, strings.TrimSpace(v))
+				log.Print(k, v)
+			}
 		}
-	}
-	log.Print(cat2)
 
-	for _, v := range cat2 {
-		f2.WriteString("\"" + v + "\"" + ",")
-	}
-	f2.WriteString("]\n")
+		for _, v := range cat2 {
+			f2.WriteString("\"" + v + "\"" + ",")
+		}
+		f2.WriteString("]\n")
 
-	if Publish == "publish" {
-		f2.WriteString("publish = " + "true" + "\n")
-	} else {
-		f2.WriteString("publish = " + "false" + "\n")
-	}
+		if Publish == "publish" {
+			f2.WriteString("publish = " + "true" + "\n")
+		} else {
+			f2.WriteString("publish = " + "false" + "\n")
+		}
 
-	// Redirect to admin page
-	http.Redirect(w, r, ("/admin"), 301)
+		// Redirect to admin page
+		http.Redirect(w, r, ("/admin"), 301)
+
+	} else if Submit == "delete" {
+
+		// Slugify the title
+		Title := r.FormValue("title")
+		Title = string(Title)
+		t := strings.Split(Title, " ")
+		titleslug := strings.ToLower(strings.Join(t, "-"))
+		log.Print(titleslug)
+
+		os.Remove(config.Public + "/index.html")
+
+		// Redirect to admin page
+		http.Redirect(w, r, ("/admin"), 301)
+	}
 
 }
 
@@ -313,8 +330,6 @@ func Categories(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	log.Print(cats)
-
 	var meta []Post
 
 	for _, v := range cats {
@@ -366,7 +381,6 @@ func ListCategories(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fats := UniqStr(cats)
-	log.Print(fats)
 
 	params := map[interface{}]interface{}{"Categories": fats, "Title": config.Title}
 
@@ -482,11 +496,17 @@ func CreateSlugIndex(v string) {
 }
 
 var funcMap = template.FuncMap{
-	"Admin": Admin,
+	"Admin":    Admin,
+	"Friendly": Friendly,
 }
 
 func Admin() string {
 	return config.Admin
+}
+
+func Friendly(t time.Time) string {
+	x := t.Format("January _2 2006 15:04:05")
+	return x
 }
 
 // Info from config file
