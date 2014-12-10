@@ -1,3 +1,4 @@
+// Dynocator is a lightweight blog/website engine written in Go
 package main
 
 import (
@@ -33,6 +34,7 @@ func init() {
 	log.Printf("In %s", diff)
 }
 
+// Refresh converts all posts to static pages and generates and index page
 func Refresh() {
 	ConvertAllPosts()
 	Index()
