@@ -6,5 +6,5 @@ import (
 )
 
 func main() {
-	dynocator.Serve()
+	dyno.Serve()
 }
