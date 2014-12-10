@@ -1,5 +1,5 @@
 // Dynocator is a lightweight blog/website engine written in Go
-package dynocator
+package dyno
 
 import (
 	"encoding/json"

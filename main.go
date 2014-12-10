@@ -2,7 +2,7 @@
 package main
 
 import (
-	"github.com/ahsanulhaque/dynocator/dynocator"
+	"github.com/ahsanulhaque/dynocator/dyno"
 )
 
 func main() {
