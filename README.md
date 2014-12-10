@@ -5,6 +5,8 @@ A lightweight blog/website engine written in Go
 
 [![wercker status](https://app.wercker.com/status/31c879f3e09f9c126fc1f8b41d6c83cd/s "wercker status")](https://app.wercker.com/project/bykey/31c879f3e09f9c126fc1f8b41d6c83cd)
 [![Build Status](https://travis-ci.org/ahsanulhaque/dynocator.svg?branch=master)](https://travis-ci.org/ahsanulhaque/dynocator)
+[![Build status](https://ci.appveyor.com/api/projects/status/58lm2pc9sritp6ug?svg=true)](https://ci.appveyor.com/project/ahsanulhaque/dynocator)
+
 
 ## Some Screenshots
 
