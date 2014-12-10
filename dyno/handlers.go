@@ -2,6 +2,7 @@ package dyno
 
 import (
 	"encoding/json"
+	"github.com/BurntSushi/toml"
 	"github.com/gorilla/mux"
 	"html/template"
 	"io"
@@ -75,27 +76,25 @@ func SettingsGet(w http.ResponseWriter, r *http.Request) {
 
 func SettingsPost(w http.ResponseWriter, r *http.Request) {
 
-	baseurl := r.FormValue("baseurl")
-	title := r.FormValue("title")
-	templates := r.FormValue("templates")
-	posts := r.FormValue("posts")
-	public := r.FormValue("public")
-	admin := r.FormValue("admin")
-	metadata := r.FormValue("metadata")
-	index := r.FormValue("index")
-
 	var configfile = flags.Configfile
-	filename := configfile
-	f2, _ := os.Create(filename)
 
-	f2.WriteString("baseurl = " + "\"" + baseurl + "\"\n")
-	f2.WriteString("title = " + "\"" + title + "\"\n")
-	f2.WriteString("templates = " + "\"" + templates + "\"\n")
-	f2.WriteString("posts = " + "\"" + posts + "\"\n")
-	f2.WriteString("public = " + "\"" + public + "\"\n")
-	f2.WriteString("admin = " + "\"" + admin + "\"\n")
-	f2.WriteString("metadata = " + "\"" + metadata + "\"\n")
-	f2.WriteString("index = " + "\"" + index + "\"")
+	filename := configfile
+	f, _ := os.Create(filename)
+
+	x := Config{
+		Baseurl:   r.FormValue("baseurl"),
+		Title:     r.FormValue("title"),
+		Templates: r.FormValue("templates"),
+		Posts:     r.FormValue("posts"),
+		Public:    r.FormValue("public"),
+		Admin:     r.FormValue("admin"),
+		Metadata:  r.FormValue("metadata"),
+		Index:     r.FormValue("index"),
+	}
+
+	if err := toml.NewEncoder(f).Encode(x); err != nil {
+		log.Fatal(err)
+	}
 
 	ConvertAllPosts()
 	Index()
@@ -129,7 +128,6 @@ func AddPost(w http.ResponseWriter, r *http.Request) {
 	titleslug := strings.ToLower(strings.Join(t, "-"))
 
 	// Author and Post
-	Author := r.FormValue("author")
 	Post := r.FormValue("post")
 	Categories := r.FormValue("categories")
 	Publish := r.FormValue("publish")
@@ -139,33 +137,35 @@ func AddPost(w http.ResponseWriter, r *http.Request) {
 	f, _ := os.Create(filename)
 	f.WriteString(Post)
 
-	// Save metadata to toml file
-	filename2 := config.Metadata + "/" + titleslug + ".toml"
-	f2, _ := os.Create(filename2)
-	f2.WriteString("title = " + "\"" + Title + "\"\n")
-	f2.WriteString("author = " + "\"" + Author + "\"\n")
-
-	// Change time format to Zulu - hack, there's gotta be a better way to do this
-	z := string(time.Now().Format(time.RFC3339 + "Z"))
-	k := strings.Split(z, "")
-	y := k[:19]
-	o := strings.Join(y, "")
-	o = o + "Z"
-	//z = strings.Replace(z, "+", "Z", 1)
-	f2.WriteString("date = " + " " + o + "\n")
-	f2.WriteString("slug = " + "\"" + titleslug + "\"\n")
-	f2.WriteString("categories = " + "[")
-
 	cat := strings.Split(strings.TrimSpace(Categories), ",")
+	var cat2 []string
 	for _, v := range cat {
-		f2.WriteString("\"" + v + "\"" + ",")
+		if v != "" {
+			cat2 = append(cat2, strings.TrimSpace(v))
+		}
 	}
-	f2.WriteString("]\n")
 
+	var pub bool
 	if Publish == "publish" {
-		f2.WriteString("publish = " + "true" + "\n")
+		pub = true
 	} else {
-		f2.WriteString("publish = " + "false" + "\n")
+		pub = false
+	}
+
+	file := config.Metadata + "/" + titleslug + ".toml"
+	o, _ := os.Create(file)
+
+	x := Metadata{
+		Title:      r.FormValue("title"),
+		Author:     r.FormValue("author"),
+		Date:       time.Now(),
+		Slug:       titleslug,
+		Categories: cat2,
+		Publish:    pub,
+	}
+
+	if err := toml.NewEncoder(o).Encode(x); err != nil {
+		log.Fatal(err)
 	}
 
 	// Redirect to admin page
@@ -186,11 +186,8 @@ func UpdatePost(w http.ResponseWriter, r *http.Request) {
 		titleslug := strings.ToLower(strings.Join(t, "-"))
 
 		z := ReadMetaData(titleslug)
-		zz := z.Date.Format(time.RFC3339)
-		//log.Print(zz)
 
 		// Author and Post
-		Author := r.FormValue("author")
 		Post := r.FormValue("post")
 		Categories := r.FormValue("categories")
 
@@ -201,39 +198,35 @@ func UpdatePost(w http.ResponseWriter, r *http.Request) {
 		f, _ := os.Create(filename)
 		f.WriteString(Post)
 
-		// Save metadata to toml file
-		filename2 := config.Metadata + "/" + titleslug + ".toml"
-		f2, _ := os.Create(filename2)
-		f2.WriteString("title = " + "\"" + Title + "\"\n")
-		f2.WriteString("author = " + "\"" + Author + "\"\n")
-
-		// Change time format to Zulu - hack, there's gotta be a better way to do this
-
-		//z = strings.Replace(z, "+", "Z", 1)
-		//log.Print(z.Date)
-		f2.WriteString("date = " + " " + zz + "\n")
-		f2.WriteString("slug = " + "\"" + titleslug + "\"\n")
-
-		f2.WriteString("categories = " + "[")
-
 		cat := strings.Split(strings.TrimSpace(Categories), ",")
 		var cat2 []string
-		for k, v := range cat {
+		for _, v := range cat {
 			if v != "" {
 				cat2 = append(cat2, strings.TrimSpace(v))
-				log.Print(k, v)
 			}
 		}
 
-		for _, v := range cat2 {
-			f2.WriteString("\"" + v + "\"" + ",")
-		}
-		f2.WriteString("]\n")
-
+		var pub bool
 		if Publish == "publish" {
-			f2.WriteString("publish = " + "true" + "\n")
+			pub = true
 		} else {
-			f2.WriteString("publish = " + "false" + "\n")
+			pub = false
+		}
+
+		file := config.Metadata + "/" + titleslug + ".toml"
+		o, _ := os.Create(file)
+
+		x := Metadata{
+			Title:      r.FormValue("title"),
+			Author:     r.FormValue("author"),
+			Date:       z.Date,
+			Slug:       titleslug,
+			Categories: cat2,
+			Publish:    pub,
+		}
+
+		if err := toml.NewEncoder(o).Encode(x); err != nil {
+			log.Fatal(err)
 		}
 
 		// Redirect to admin page

@@ -112,6 +112,8 @@ func CreateIndex() {
 
 func CreateSlugIndex(v string) {
 
+	var config = ReadConfig()
+
 	filename := config.Posts + "/" + v + ".html"
 	dat, _ := ioutil.ReadFile(filename)
 
