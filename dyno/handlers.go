@@ -18,10 +18,15 @@ var funcMap = template.FuncMap{
 	"Admin":    Admin,
 	"Friendly": Friendly,
 	"Ago":      Ago,
+	"Baseurl":  Baseurl,
 }
 
 func Admin() string {
 	return config.Admin
+}
+
+func Baseurl() string {
+	return config.Baseurl
 }
 
 func Friendly(t time.Time) string {
