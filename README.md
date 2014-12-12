@@ -62,3 +62,6 @@ Note that your static assets like css/js should be in `public/static`
 
 You should deploy dynocator behind nginx as a reverse proxy for best results.
 
+## TODO
+- Auth/session for admin
+- sections
