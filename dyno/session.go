@@ -1,44 +1,27 @@
 package dyno
 
 import (
-	"github.com/gorilla/securecookie"
+	"github.com/gorilla/sessions"
 	"net/http"
 )
 
-var cookieHandler = securecookie.New(
-	securecookie.GenerateRandomKey(64),
-	securecookie.GenerateRandomKey(32))
+var store = sessions.NewFilesystemStore("sessions", []byte("something-very-secret"))
 
-func setSession(userName string, response http.ResponseWriter) {
-	value := map[string]string{
-		"name": userName,
-	}
-	if encoded, err := cookieHandler.Encode("session", value); err == nil {
-		cookie := &http.Cookie{
-			Name:  "session",
-			Value: encoded,
-			Path:  "/",
-		}
-		http.SetCookie(response, cookie)
-	}
+func SetSession(userName string, w http.ResponseWriter, r *http.Request) {
+	session, _ := store.Get(r, "session")
+	session.Values["username"] = userName
+	// Save it.
+	session.Save(r, w)
 }
 
-func getUserName(request *http.Request) (userName string) {
-	if cookie, err := request.Cookie("session"); err == nil {
-		cookieValue := make(map[string]string)
-		if err = cookieHandler.Decode("session", cookie.Value, &cookieValue); err == nil {
-			userName = cookieValue["name"]
-		}
-	}
-	return userName
+func GetUserName(r *http.Request) interface{} {
+	session, _ := store.Get(r, "session")
+	user := session.Values["username"]
+	return user
 }
 
-func clearSession(response http.ResponseWriter) {
-	cookie := &http.Cookie{
-		Name:   "session",
-		Value:  "",
-		Path:   "/",
-		MaxAge: -1,
-	}
-	http.SetCookie(response, cookie)
+func ClearSession(w http.ResponseWriter, r *http.Request) {
+	session, _ := store.Get(r, "session")
+	session.Values["username"] = nil
+	session.Save(r, w)
 }

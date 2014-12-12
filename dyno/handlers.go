@@ -77,11 +77,11 @@ func loginPost(w http.ResponseWriter, r *http.Request) {
 
 	name := r.FormValue("name")
 	pass := r.FormValue("password")
-	log.Print(name, pass)
+
 	redirectTarget := "/admin/login"
 	if name != "" && pass != "" {
 		if name == config.Username && pass == config.Password {
-			setSession(name, w)
+			SetSession(name, w, r)
 			redirectTarget = config.Baseurl + "/" + config.Admin
 		}
 	}
@@ -90,13 +90,14 @@ func loginPost(w http.ResponseWriter, r *http.Request) {
 }
 
 func logout(w http.ResponseWriter, r *http.Request) {
-	clearSession(w)
+	ClearSession(w, r)
 	http.Redirect(w, r, "/", 302)
 }
 
 func Authenticate(w http.ResponseWriter, r *http.Request) {
-	userName := getUserName(r)
-	if userName == "" {
+	UserName := GetUserName(r)
+
+	if UserName == nil {
 		http.Redirect(w, r, "/admin/login", 302)
 	}
 }
