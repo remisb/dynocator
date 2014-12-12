@@ -91,7 +91,7 @@ func loginPost(w http.ResponseWriter, r *http.Request) {
 
 func logout(w http.ResponseWriter, r *http.Request) {
 	ClearSession(w, r)
-	http.Redirect(w, r, "/", 302)
+	http.Redirect(w, r, "/admin/login", 302)
 }
 
 func Authenticate(w http.ResponseWriter, r *http.Request) {
