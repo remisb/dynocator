@@ -145,6 +145,8 @@ type Config struct {
 	Admin     string
 	Metadata  string
 	Index     string
+	Username  string
+	Password  string
 }
 
 // Reads info from config file

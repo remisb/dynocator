@@ -46,6 +46,8 @@ func CreateTemplate(name string, globpath string, w io.Writer, params map[interf
 
 func AdminIndex(w http.ResponseWriter, r *http.Request) {
 
+	Authenticate(w, r)
+
 	posts := ExtractPostsByDate()
 
 	var meta []Metadata
@@ -61,7 +63,47 @@ func AdminIndex(w http.ResponseWriter, r *http.Request) {
 	CreateTemplate("index", (config.Admin + "/*.html"), w, params)
 }
 
+func loginGet(w http.ResponseWriter, r *http.Request) {
+
+	params := map[interface{}]interface{}{"Admin": config.Admin, "Title": config.Title}
+
+	CreateTemplate("login", (config.Admin + "/*.html"), w, params)
+
+}
+
+func loginPost(w http.ResponseWriter, r *http.Request) {
+
+	var config = ReadConfig()
+
+	name := r.FormValue("name")
+	pass := r.FormValue("password")
+	log.Print(name, pass)
+	redirectTarget := "/admin/login"
+	if name != "" && pass != "" {
+		if name == config.Username && pass == config.Password {
+			setSession(name, w)
+			redirectTarget = config.Baseurl + "/" + config.Admin
+		}
+	}
+	http.Redirect(w, r, redirectTarget, 302)
+
+}
+
+func logout(w http.ResponseWriter, r *http.Request) {
+	clearSession(w)
+	http.Redirect(w, r, "/", 302)
+}
+
+func Authenticate(w http.ResponseWriter, r *http.Request) {
+	userName := getUserName(r)
+	if userName == "" {
+		http.Redirect(w, r, "/admin/login", 302)
+	}
+}
+
 func AddGet(w http.ResponseWriter, r *http.Request) {
+
+	Authenticate(w, r)
 
 	params := map[interface{}]interface{}{"Admin": config.Admin, "Title": config.Title}
 
@@ -70,6 +112,8 @@ func AddGet(w http.ResponseWriter, r *http.Request) {
 }
 
 func SettingsGet(w http.ResponseWriter, r *http.Request) {
+
+	Authenticate(w, r)
 
 	var conf = ReadConfig()
 

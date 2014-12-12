@@ -16,6 +16,9 @@ func Serve() {
 	r.HandleFunc("/"+config.Admin+"/edit/{post}", EditPost).Methods("GET")
 	r.HandleFunc("/"+config.Admin+"/edit/{post}", UpdatePost).Methods("POST")
 	r.HandleFunc("/"+config.Admin+"/uploadimage", UploadImage).Methods("POST")
+	r.HandleFunc("/"+config.Admin+"/login", loginGet).Methods("GET")
+	r.HandleFunc("/"+config.Admin+"/login", loginPost).Methods("POST")
+	r.HandleFunc("/"+config.Admin+"/logout", logout).Methods("GET")
 
 	r.HandleFunc("/category/{category}", Categories).Methods("GET")
 	r.HandleFunc("/categories", ListCategories).Methods("GET")
