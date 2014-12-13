@@ -127,6 +127,7 @@ func SettingsGet(w http.ResponseWriter, r *http.Request) {
 func SettingsPost(w http.ResponseWriter, r *http.Request) {
 
 	var configfile = flags.Configfile
+	var config = ReadConfig()
 
 	filename := configfile
 	f, _ := os.Create(filename)
@@ -140,6 +141,8 @@ func SettingsPost(w http.ResponseWriter, r *http.Request) {
 		Admin:     r.FormValue("admin"),
 		Metadata:  r.FormValue("metadata"),
 		Index:     r.FormValue("index"),
+		Username:  config.Username,
+		Password:  config.Password,
 	}
 
 	if err := toml.NewEncoder(f).Encode(x); err != nil {
