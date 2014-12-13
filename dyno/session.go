@@ -1,11 +1,12 @@
 package dyno
 
 import (
+	"github.com/gorilla/securecookie"
 	"github.com/gorilla/sessions"
 	"net/http"
 )
 
-var store = sessions.NewFilesystemStore("sessions", []byte("something-very-secret"))
+var store = sessions.NewFilesystemStore("sessions", securecookie.GenerateRandomKey(64))
 
 func SetSession(userName string, w http.ResponseWriter, r *http.Request) {
 	session, _ := store.Get(r, "session")
