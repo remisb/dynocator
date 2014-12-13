@@ -103,6 +103,7 @@ func CreateIndex() {
 	}
 	defer r.Close()
 
+	var config = ReadConfig()
 	params := map[interface{}]interface{}{"Posts": &meta, "Title": config.Title}
 
 	CreateTemplate("index", (config.Templates + "/*.html"), r, params)
@@ -303,6 +304,10 @@ func ConvertWatcher() {
 		log.Fatal(err)
 	}
 	err = watcher.Add(config.Metadata + "/")
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = watcher.Add(".")
 	if err != nil {
 		log.Fatal(err)
 	}
