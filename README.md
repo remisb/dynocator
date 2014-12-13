@@ -6,6 +6,9 @@ A lightweight blog/website engine written in Go
 [![wercker status](https://app.wercker.com/status/31c879f3e09f9c126fc1f8b41d6c83cd/s "wercker status")](https://app.wercker.com/project/bykey/31c879f3e09f9c126fc1f8b41d6c83cd)
 [![Build Status](https://travis-ci.org/ahsanulhaque/dynocator.svg?branch=master)](https://travis-ci.org/ahsanulhaque/dynocator)
 
+## Demo
+
+See the demo [here](http://demo.dynocator.com) and see the admin part [here](http://demo.dynocator.com/admin). Use username "admin" and password "secret" to login.
 
 ## Some Screenshots
 
