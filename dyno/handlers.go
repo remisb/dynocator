@@ -232,11 +232,6 @@ func UpdatePost(w http.ResponseWriter, r *http.Request) {
 
 		Publish := r.FormValue("publish")
 
-		// Save post as static html file
-		filename := config.Posts + "/" + titleslug + ".html"
-		f, _ := os.Create(filename)
-		f.WriteString(Post)
-
 		cat := strings.Split(strings.TrimSpace(Categories), ",")
 		var cat2 []string
 		for _, v := range cat {
@@ -267,6 +262,11 @@ func UpdatePost(w http.ResponseWriter, r *http.Request) {
 		if err := toml.NewEncoder(o).Encode(x); err != nil {
 			log.Fatal(err)
 		}
+
+		// Save post as static html file
+		filename := config.Posts + "/" + titleslug + ".html"
+		f, _ := os.Create(filename)
+		f.WriteString(Post)
 
 		// Redirect to admin page
 		http.Redirect(w, r, ("/admin"), 301)
