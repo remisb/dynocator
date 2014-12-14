@@ -46,8 +46,6 @@ func CreateTemplate(name string, globpath string, w io.Writer, params map[interf
 
 func AdminIndex(w http.ResponseWriter, r *http.Request) {
 
-	Authenticate(w, r)
-
 	posts := ExtractPostsByDate()
 
 	var meta []Metadata
@@ -94,17 +92,7 @@ func logout(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/admin/login", 302)
 }
 
-func Authenticate(w http.ResponseWriter, r *http.Request) {
-	UserName := GetUserName(r)
-
-	if UserName == nil {
-		http.Redirect(w, r, "/admin/login", 302)
-	}
-}
-
 func AddGet(w http.ResponseWriter, r *http.Request) {
-
-	Authenticate(w, r)
 
 	params := map[interface{}]interface{}{"Admin": config.Admin, "Title": config.Title}
 
@@ -113,8 +101,6 @@ func AddGet(w http.ResponseWriter, r *http.Request) {
 }
 
 func SettingsGet(w http.ResponseWriter, r *http.Request) {
-
-	Authenticate(w, r)
 
 	var conf = ReadConfig()
 

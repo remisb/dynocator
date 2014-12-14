@@ -8,13 +8,14 @@ import (
 
 func Serve() {
 	r := mux.NewRouter()
-	r.HandleFunc("/"+config.Admin, AdminIndex).Methods("GET")
-	r.HandleFunc("/"+config.Admin+"/add", AddGet).Methods("GET")
-	r.HandleFunc("/"+config.Admin+"/add", AddPost).Methods("POST")
-	r.HandleFunc("/"+config.Admin+"/settings", SettingsGet).Methods("GET")
-	r.HandleFunc("/"+config.Admin+"/settings", SettingsPost).Methods("POST")
-	r.HandleFunc("/"+config.Admin+"/edit/{post}", EditPost).Methods("GET")
-	r.HandleFunc("/"+config.Admin+"/edit/{post}", UpdatePost).Methods("POST")
+
+	r.HandleFunc("/"+config.Admin, Auth(AdminIndex)).Methods("GET")
+	r.HandleFunc("/"+config.Admin+"/add", Auth(AddGet)).Methods("GET")
+	r.HandleFunc("/"+config.Admin+"/add", Auth(AddPost)).Methods("POST")
+	r.HandleFunc("/"+config.Admin+"/settings", Auth(SettingsGet)).Methods("GET")
+	r.HandleFunc("/"+config.Admin+"/settings", Auth(SettingsPost)).Methods("POST")
+	r.HandleFunc("/"+config.Admin+"/edit/{post}", Auth(EditPost)).Methods("GET")
+	r.HandleFunc("/"+config.Admin+"/edit/{post}", Auth(UpdatePost)).Methods("POST")
 	r.HandleFunc("/"+config.Admin+"/uploadimage", UploadImage).Methods("POST")
 	r.HandleFunc("/"+config.Admin+"/login", loginGet).Methods("GET")
 	r.HandleFunc("/"+config.Admin+"/login", loginPost).Methods("POST")
@@ -25,7 +26,7 @@ func Serve() {
 
 	r.PathPrefix("/").Handler(http.FileServer(http.Dir(config.Public)))
 
-	log.Printf("Server running on %s", ("http://localhost" + flags.Port))
+	log.Printf("Server running on port %s", flags.Port)
 	log.Printf("Press ctrl+c to stop")
 
 	// Start file-change watcher for posts/
