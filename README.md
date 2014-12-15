@@ -41,14 +41,17 @@ export PATH=$PATH:$GOPATH/bin
 ## Setting up dynocator
 dynocator requires a `config.toml` file for configuration. Create a `config.toml` file in your project directory containing:
 ```
-baseurl="http://localhost:1414"
-title="My Beautiful Site"
-templates="templates"
-posts="posts"
-public="public"
-admin="admin"
-metadata="metadata"
-index="default"
+Baseurl = "http://localhost:1414"
+Title = "My Beautiful Site"
+Templates = "templates"
+Posts = "posts"
+Public = "public"
+Admin = "admin"
+Metadata = "metadata"
+Index = "default"
+Username = "admin"
+Password = "secret"
+
 ```
 Your project directory should have the following structure:
 ```
@@ -58,6 +61,7 @@ public/static
 templates/
 admin/
 metadata/
+sessions/
 ```
 Note that your static assets like css/js should be in `public/static`
 

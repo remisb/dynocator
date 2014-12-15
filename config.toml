@@ -1,8 +1,0 @@
-baseurl = "http://localhost:1414"
-title = "My Beautiful New Site"
-templates = "templates"
-posts = "posts"
-public = "public"
-admin = "admin"
-metadata = "metadata"
-index = "default"
