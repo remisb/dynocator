@@ -170,6 +170,12 @@ func AddPost(w http.ResponseWriter, r *http.Request) {
 	Post := r.FormValue("post")
 	Categories := r.FormValue("categories")
 	Publish := r.FormValue("publish")
+	Section := r.FormValue("section")
+	//log.Print(Section)
+
+	if Section == "" {
+		Section = "/"
+	}
 
 	cat := strings.Split(strings.TrimSpace(Categories), ",")
 	var cat2 []string
@@ -186,7 +192,14 @@ func AddPost(w http.ResponseWriter, r *http.Request) {
 		pub = false
 	}
 
-	file := config.Metadata + "/" + titleslug + ".toml"
+	fulldir := config.Metadata + Section
+	//log.Print(fulldir)
+
+	if Section != "/" {
+		os.Mkdir(fulldir, 0777)
+	}
+
+	file := config.Metadata + Section + titleslug + ".toml"
 	o, _ := os.Create(file)
 
 	x := Metadata{
@@ -196,6 +209,7 @@ func AddPost(w http.ResponseWriter, r *http.Request) {
 		Slug:       titleslug,
 		Categories: cat2,
 		Publish:    pub,
+		Section:    Section,
 	}
 
 	if err := toml.NewEncoder(o).Encode(x); err != nil {
@@ -203,7 +217,14 @@ func AddPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Save post as static html file
-	filename := config.Posts + "/" + titleslug + ".html"
+	fulldir2 := config.Posts + Section
+	//log.Print(fulldir2)
+
+	if Section != "/" {
+		os.Mkdir(fulldir2, 0777)
+	}
+
+	filename := config.Posts + Section + titleslug + ".html"
 	f, _ := os.Create(filename)
 	f.WriteString(Post)
 
@@ -257,6 +278,7 @@ func UpdatePost(w http.ResponseWriter, r *http.Request) {
 			Slug:       titleslug,
 			Categories: cat2,
 			Publish:    pub,
+			Section:    r.FormValue("section"),
 		}
 
 		if err := toml.NewEncoder(o).Encode(x); err != nil {

@@ -182,6 +182,27 @@ func ReadFlags() Flag {
 	return x
 }
 
+var AllPosts []string
+
+func visit(fp string, fi os.FileInfo, err error) error {
+	if err != nil {
+		log.Println(err) // can't walk here,
+		return nil       // but continue walking elsewhere
+	}
+	if !!fi.IsDir() {
+		return nil // not a file.  ignore.
+	}
+	matched, err := filepath.Match("*.html", fi.Name())
+	if err != nil {
+		log.Println(err) // malformed pattern
+		return err       // this is fatal.
+	}
+	if matched {
+		AllPosts = append(AllPosts, fp)
+	}
+	return nil
+}
+
 // Converts all markdown posts to static pages
 func ConvertAllPosts() {
 	i := 0
@@ -199,10 +220,13 @@ func ConvertAllPosts() {
 		}
 	}
 
-	p := config.Posts + "/" + "*html"
-	files, _ := filepath.Glob(p)
+	//p := config.Posts + "/" + "*html"
+	//files, _ := filepath.Glob(p)
 
-	for _, v := range files {
+	filepath.Walk(config.Posts, visit)
+	log.Print(AllPosts)
+
+	for _, v := range AllPosts {
 		//log.Print(v)
 		ConvertPost(v)
 		i++
@@ -214,17 +238,19 @@ func ConvertAllPosts() {
 // Converts a post to a static page
 func ConvertPost(v string) {
 	// Let's read some data
+	//log.Printf("Reading %s", v)
 	dat, _ := ioutil.ReadFile(v)
-
+	//log.Print("Read")
 	// Read file, split by lines and grab everything except first line, join lines again
 	x := string(dat)
 
 	fi := strings.TrimSuffix(v, ".html")
 	fi = strings.TrimPrefix(fi, config.Posts+"/")
 	fi = config.Public + "/" + fi
-	os.Mkdir(fi, 0777)
+	log.Print(fi)
+	os.MkdirAll(fi, 0777)
 	fi = fi + "/index.html"
-	//log.Print(v)
+	//log.Print(fi)
 	metadata := ReadMetaData(v)
 	//log.Print(metadata)
 	r, err := os.OpenFile(fi, os.O_WRONLY|os.O_CREATE, 0777)
@@ -246,6 +272,7 @@ type Metadata struct {
 	Slug       string
 	Categories []string
 	Publish    bool
+	Section    string
 }
 
 // Reads info from config file
